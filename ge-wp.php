@@ -203,8 +203,8 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                                 <?php } ?>
                             </div>
                         </div>
-                        <div class="clearfix actives">
-			    <button class="btn btn-primary dropdown-toggle" style="background-color: #8c9eff; border-color: #8c9eff" type="button" id="filter-3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="dropdown d-inline">
+			    <button class="btn btn-primary dropdown-toggle" type="button" id="filter-3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Unidade
                             </button>
                             <div class="dropdown-menu" aria-labelledby="filter-3">
