@@ -131,8 +131,16 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
 			$conn_str .= 'password='. $db_config['password'] .'';
 
 			$conn = pg_connect($conn_str);
-			$sql = $db_config['query'];
 
+            if (!empty($_GET['unidade'])) {
+                $id_unidade = filter_input(INPUT_GET, 'unidade');
+                $sql_unidade = (!empty($_GET['unidade'])) ? " AND a.id_secretaria =" . $id_unidade : "";
+                $order = " ORDER BY a.nome_eixo, a.nome_acao;";
+                $sql = $db_config['query-by-unidade'] . $id_unidade . $order;
+            } else {
+                $sql = $db_config['query'];
+            }
+            
 			$result = pg_query($conn, $sql);
 			$raw_data = pg_fetch_all($result);
 			$raw_data = $raw_data ? $raw_data : [];
@@ -146,12 +154,16 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
 			$result = pg_query($conn, $sql);
 			$objectives = pg_fetch_all($result);
 
+			$sql = $db_config['query-unidades'];
+			$result = pg_query($conn, $sql);
+			$unidades = pg_fetch_all($result);
+
 			$sql = $db_config['query-diretrizes'];
 
 			$result = pg_query($conn, $sql);
 			$diretrizes = pg_fetch_all($result);
 
-			function filters ($objectives, $diretrizes) { ?>
+			function filters ($objectives, $diretrizes, $unidades) { ?>
 
                 <div class="filter-wrap col-md-12">
                     <div class="filter">
@@ -191,7 +203,20 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                                 <?php } ?>
                             </div>
                         </div>
-                        <?php if( !empty( $_GET['eixo'] ) || !empty( $_GET['objetivo'] ) || !empty( $_GET['diretriz'] ) ): ?>
+                        <div class="clearfix actives">
+			    <button class="btn btn-primary dropdown-toggle" style="background-color: #8c9eff; border-color: #8c9eff" type="button" id="filter-3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Unidade
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="filter-3">
+                                <h6 class="dropdown-header">Selecione uma unidade</h6>
+	                            <?php
+	                            foreach ( $unidades as $unidade ) { ?>
+                                    <a class="dropdown-item" href="<?php echo home_url('/acoes-estrategicas/?unidade=') . $unidade['id_secretaria']; ?>"><?php echo $unidade['nome_secretaria']; ?></a>
+	                            <?php } ?>
+                            </div>			    
+                        </div>
+                                
+                        <?php if( !empty( $_GET['eixo'] ) || !empty( $_GET['objetivo'] ) || !empty( $_GET['diretriz'] ) || !empty( $_GET['unidade']) ): ?>
                         <div class="clearfix actives">
                             <?php echo !empty( $_GET['eixo'] ) ? '<a href="'. home_url('/acoes-estrategicas/') .'" class="badge badge-secondary">Eixo: '. $_GET['eixo'] .' <i class="fa fa-close"></i></a>' : ''; ?>
 
@@ -200,8 +225,9 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                             echo !empty( $objective ) ? '<a href="'. home_url('/acoes-estrategicas/') .'" class="badge badge-secondary">Objetivo Estratégico: '. $objectives[$objective]['nome_objetivo'] .' <i class="fa fa-close"></i></a>' : ''; ?>
 
                             <?php
-                            $diretriz = array_search($_GET['diretriz'], array_column($diretrizes, 'id_diretriz'));
-                            echo !empty( $_GET['diretriz'] ) ? '<a href="'. home_url('/acoes-estrategicas/') .'" class="badge badge-secondary">Diretriz: '. $diretrizes[$diretriz]['nome_diretriz'] .' <i class="fa fa-close"></i></a>' : ''; ?>
+                            $unidade = array_search($_GET['unidade'], array_column($unidades, 'id_secretaria'));
+				echo !empty( $_GET['unidade'] ) ? '<a href="'. home_url('/acoes-estrategicas/') .'" class="badge badge-secondary">Unidade: '. $unidades[$unidade]['nome_secretaria'] .' <i class="fa fa-close"></i></a>' : ''; ?>
+
                         </div>
                         <?php endif; ?>
                     </div>
@@ -272,11 +298,14 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
 			<div id="acoes-estrategicas" class="row">
 
                 <?php
+                    $id_unidade = filter_input(INPUT_GET, 'unidade');
+                    $sql_unidade = (!empty($_GET['unidade'])) ? " AND a.id_secretaria =" . $id_unidade : "";
                     // Nenhum parametro informado
+                    
                     if( empty( $_GET['eixo'] ) && empty( $_GET['objetivo'] ) && empty( $_GET['diretriz'] ) ):
                 ?>
 
-                <?php echo filters ($objectives, $diretrizes); ?>
+                <?php echo filters ($objectives, $diretrizes, $unidades); ?>
 
 				<div class="col-md-4">
 					<div class="acao">
@@ -310,7 +339,7 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                     elseif( !empty( $_GET['eixo'] ) && empty( $_GET['objetivo'] ) ):
                 ?>
 
-                <?php echo filters ($objectives, $diretrizes); ?>
+                <?php echo filters ($objectives, $diretrizes, $unidades); ?>
 
                 <div class="col-md-12">
                     <div class="acao">
@@ -342,12 +371,13 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                     elseif( empty( $_GET['eixo'] ) && !empty( $_GET['diretriz'] ) ):
                 ?>
 
-                    <?php echo filters ($objectives, $diretrizes); ?>
-
+                    <?php echo filters ($objectives, $diretrizes, $unidades); ?>
+                    
                     <div class="col-md-12">
 		                <?php
+                    
+                    $sql = $db_config['query-by-diretriz'] . $_GET['diretriz'] . $sql_unidade;
 
-		                $sql = $db_config['query-by-diretriz'] . $_GET['diretriz'];
 		                $result = pg_query($conn, $sql);
 		                $raw_data = pg_fetch_all($result);
 		                $raw_data = $raw_data ? $raw_data : [];
@@ -387,7 +417,7 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
                     // Filtro por objetivos
                     elseif( empty( $_GET['eixo'] ) && !empty( $_GET['objetivo'] ) ):
 
-	                $sql = $db_config['query-by-objective'] . $_GET['objetivo'];
+	                $sql = $db_config['query-by-objective'] . $_GET['objetivo'] . $sql_unidade;
 					$result = pg_query($conn, $sql);
 					$raw_data = pg_fetch_all($result);
 					$raw_data = $raw_data ? $raw_data : [];
@@ -396,7 +426,7 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
 						$ge_data[$dado['nome_eixo']][] = $dado;
 					} ?>
 
-                <?php echo filters ($objectives, $diretrizes); ?>
+                <?php echo filters ($objectives, $diretrizes, $unidades); ?>
 
                 <div class="col-md-12">
                     <?php
@@ -456,7 +486,7 @@ if( ! class_exists('GestaoEstrategicaWP') ) :
 
 			$conn = pg_connect($conn_str);
 			$sql = $db_config['query-objetivos'];
-
+ 
 			$result = pg_query($conn, $sql);
 			$objectives = pg_fetch_all($result);
 
