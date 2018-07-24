@@ -124,6 +124,15 @@ get_header(); ?>
                                             <p><b>Descritivo:</b><br>
                                             <?php echo $acao_data[0]['descricao_acao']; ?></p>
                                         </div>
+                                        <div class="col-md-12">
+                                            <p><b>Produto:</b><br>
+                                            <?php echo $acao_data[0]['acaproduto']; ?></p>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <p><b>Data de entrega da ação:</b><br>
+						<?php echo $acao_data[0]['mesdsc']; ?>/ <?php echo date('Y'); ?></p>
+                                        </div>
+
                                     </div>
 
 	                                <?php endif; ?>
