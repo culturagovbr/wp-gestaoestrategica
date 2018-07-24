@@ -130,7 +130,7 @@ get_header(); ?>
                                         </div>
                                         <div class="col-md-12">
                                             <p><b>Data de entrega da ação:</b><br>
-						<?php echo $acao_data[0]['mesdsc']; ?>/ <?php echo date('Y'); ?></p>
+						<?php echo $acao_data[0]['mesdsc']; ?> / <?php echo date('Y'); ?></p>
                                         </div>
 
                                     </div>
